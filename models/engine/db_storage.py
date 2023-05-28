@@ -59,23 +59,6 @@ class DBStorage:
         """commit all changes of the current database session"""
         self.__session.commit()
 
-    def get(self, cls, id):
-        """
-        Retrieve object by object id from storage
-        """
-        if cls is None or id is None:
-            return None
-        return self.__session.query(classes[cls.__name__]).get(id)
-
-    def count(self, cls=None):
-        """
-        Gets the number of objects in storage matching the given class.
-        If no class is passed, returns the count of all objects in storage.
-        """
-        if cls is not None:
-            return len(self.all(cls))
-        return len(self.all())
-
     def delete(self, obj=None):
         """delete from the current database session obj if not None"""
         if obj is not None:
@@ -87,6 +70,33 @@ class DBStorage:
         sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(sess_factory)
         self.__session = Session
+
+    def get(self, cls, id):
+        """
+        Returns the object based on the class name and its ID, or
+        None if not found
+        """
+        if cls not in classes.values():
+            return None
+        all_cls = models.storage.all(cls)
+        for value in all_cls.values():
+            if (value.id == id):
+                return value
+        return None
+
+    def count(self, cls=None):
+        """A method to count the number of objects in storage:
+        Returns the number of objects in storage matching the given class.
+        If no class is passed, returns the count of all objects in storage.
+        """
+        all_class = classes.values()
+        if not cls:
+            count = 0
+            for clas in all_class:
+                count += len(models.storage.all(clas).values())
+        count = len(models.storage.all(cls).values())
+
+        return count
 
     def close(self):
         """call remove() method on the private session attribute"""

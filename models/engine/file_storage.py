@@ -34,6 +34,31 @@ class FileStorage:
             return new_dict
         return self.__objects
 
+    def get(self, cls, id):
+        """method to retrieve one object:
+        Returns the object based on the class and its ID, or None if not found
+        """
+        if cls not in classes.values():
+            return None
+        all_cls = models.storage.all(cls)
+        for value in all.cls.values():
+            if value.id == id:
+                return value
+        return None
+
+    def count(self, cls=None):
+        """method to count the number of objects in storage:
+        Returns the number of objects in storage matching the given class
+        If no class is passed, returns the count of all objects in storage.
+        """
+        all_clss = classes.values()
+        if cls is None:
+            count = 0
+            for clas in all_clss:
+                count += len(models.storage.all(clas).values())
+        count = len(models.storage.all(cls).values())
+        return count
+
     def new(self, obj):
         """sets in __objects the obj with key <obj class name>.id"""
         if obj is not None:
@@ -47,27 +72,6 @@ class FileStorage:
             json_objects[key] = self.__objects[key].to_dict()
         with open(self.__file_path, 'w') as f:
             json.dump(json_objects, f)
-	
-    def get(self, cls, id):
-        """Retrieve object by object id from storage"""
-        if cls is None or id is None:
-            return None
-        obj_key = cls.__name__ + "." + id
-        obj = self.__objects[obj_key]
-        return obj
-    
-    def count(self, cls=None):
-        """
-        Gets the number of objects in storage matching the given class.
-        If no class is passed, returns the count of all objects in storage.
-        """
-        if cls is not None:
-            count = 0
-            for obj in self.__objects:
-                if obj.split(".")[0] == cls.__name__:
-                    count += 1
-            return count
-        return len(self.__objects)
 
     def reload(self):
         """deserializes the JSON file to __objects"""
