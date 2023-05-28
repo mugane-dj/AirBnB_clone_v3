@@ -41,7 +41,7 @@ class TestFileStorageDocs(unittest.TestCase):
         """Test tests/test_models/test_file_storage.py conforms to PEP8."""
         pep8s = pep8.StyleGuide(quiet=True)
         result = pep8s.check_files(['tests/test_models/test_engine/\
-                                     test_file_storage.py'])
+test_file_storage.py'])
         self.assertEqual(result.total_errors, 0,
                          "Found code style errors (and warnings).")
 
@@ -114,40 +114,26 @@ class TestFileStorage(unittest.TestCase):
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_get_returns_a_single_obj(self):
-        """Test that get retrieves an object by id from file.json"""
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                     "not testing file storage")
+    def test_get(self):
+        """Test that the get method properly retrievs objects"""
         storage = FileStorage()
-        obj_id = list(storage.all(State).values())[0].id
-        obj = storage.get(State, obj_id)
-        self.assertEqual(type(obj), State)
+        self.assertIs(storage.get("User", "blah"), None)
+        self.assertIs(storage.get("blah", "blah"), None)
+        new_user = User()
+        new_user.save()
+        self.assertIs(storage.get("User", new_user.id), new_user)
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_get_raises_type_error(self):
-        """Test that get returns none if id is none"""
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db',
+                     "not testing file storage")
+    def test_count(self):
         storage = FileStorage()
-        with self.assertRaises(TypeError):
-            storage.get(cls=State)
-
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_get_raises_type_error(self):
-        """Test that get returns none if cls is none"""
-        storage = FileStorage()
-        with self.assertRaises(TypeError):
-            storage.get(id="af14c85b-172f-4474-8a30-d4ec21f9795e")
-
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_count_for_all_objects(self):
-        """Test that counts returns number of all objects"""
-        storage = FileStorage()
-        all_objs = storage.all()
-        self.assertEqual(models.storage.count(), len(all_objs))
-
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_count_returns_count_if_class_specified(self):
-        """
-        Test that counts returns number of all objects in specified class
-        """
-        storage = FileStorage()
-        all_objs = storage.all(State)
-        self.assertEqual(storage.count(State), len(all_objs))
+        initial_length = len(storage.all())
+        self.assertEqual(storage.count(), initial_length)
+        state_len = len(storage.all("State"))
+        self.assertEqual(storage.count("State"), state_len)
+        new_state = State()
+        new_state.save()
+        self.assertEqual(storage.count(), initial_length + 1)
+        self.assertEqual(storage.count("State"), state_len + 1)
