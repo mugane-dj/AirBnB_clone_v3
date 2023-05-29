@@ -57,7 +57,7 @@ def create_state_obj():
     Creates a new State object.
     """
     body = request.get_json()
-    if data is None:
+    if body is None:
         return jsonify({"error": "Not a JSON"}), 400
 
     if "name" not in body.keys():
