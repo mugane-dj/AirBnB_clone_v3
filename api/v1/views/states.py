@@ -42,9 +42,9 @@ def delete_state_by_id(state_id):
     """
     Deletes a State object by id.
     """
-    obj = storage.get(State, state_id)
-    if obj:
-        obj.delete()
+    state = storage.get(State, state_id)
+    if state:
+        state.delete()
         storage.save()
         return jsonify({}), 200
     else:
@@ -56,17 +56,15 @@ def create_state_obj():
     """
     Creates a new State object.
     """
-    try:
-        body = request.get_json()
-    except Exception:
+    body = request.get_json()
+    if data is None:
         return jsonify({"error": "Not a JSON"}), 400
 
     if "name" not in body.keys():
         return jsonify({"error": "Missing name"}), 400
-    obj = State(name=body.get("name"))
-    storage.new(obj)
-    storage.save()
-    state = storage.get(State, obj.id)
+
+    state = State(**body)
+    state.save()
     return jsonify(state.to_dict()), 201
 
 
@@ -76,18 +74,17 @@ def update_state_obj(state_id):
     """
     Updates a State object.
     """
-    try:
-        body = request.get_json()
-    except Exception:
+    body = request.get_json()
+    if body is None:
         return jsonify({"error": "Not a JSON"}), 400
 
-    state_obj = storage.get(State, state_id)
-    if state_obj is None:
+    state = storage.get(State, state_id)
+    if state is None:
         abort(404)
 
     ignore_keys = ['id', 'created_at', 'updated_at']
     for key, value in body.items():
         if key not in ignore_keys:
             setattr(state, key, value)
-    storage.save()
-    return jsonify(state_obj.to_dict()), 200
+    state.save()
+    return jsonify(state.to_dict()), 200
