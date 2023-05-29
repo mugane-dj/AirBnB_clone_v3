@@ -86,7 +86,8 @@ def update_state_obj(state_id):
         abort(404)
 
     ignore_keys = ['id', 'created_at', 'updated_at']
-    for key, value in data.items():
+    for key, value in body.items():
         if key not in ignore_keys:
             setattr(state, key, value)
+    storage.save()
     return jsonify(state_obj.to_dict()), 200
